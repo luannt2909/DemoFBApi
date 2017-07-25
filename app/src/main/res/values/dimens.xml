@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--Text size -->
+    <dimen name="text_size_small">16sp</dimen>
+    <dimen name="text_size_normal">20sp</dimen>
+    <dimen name="text_size_large">24sp</dimen>
+    <!-- Image size -->
+    <dimen name="image_size">50dp</dimen>
+</resources>
