@@ -1,12 +1,10 @@
 package com.luannt.lap10515.demosimpleapp.view.base;
 
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.Toast;
@@ -14,7 +12,6 @@ import android.widget.Toast;
 import com.luannt.lap10515.demosimpleapp.R;
 import com.luannt.lap10515.demosimpleapp.application.AppComponent.AppComponent;
 import com.luannt.lap10515.demosimpleapp.application.MainApplication;
-import com.luannt.lap10515.demosimpleapp.broadcast_receiver.NetworkChangeReceiver;
 import com.luannt.lap10515.demosimpleapp.eventmessage.ConnectionMessage;
 import com.luannt.lap10515.demosimpleapp.presenter.base.Presenter;
 
@@ -36,17 +33,14 @@ public abstract class MainActivity<P extends Presenter> extends AppCompatActivit
 
     @Inject
     protected Context mContext;
+    protected Unbinder mUnbinder;
 
-    Unbinder mUnbinder;
-    protected BroadcastReceiver mNetworkBroadcast;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getLayoutId());
         inject(getAppCompent());
         mUnbinder = ButterKnife.bind(this);
-        mPresenter.setView(this);
-        mNetworkBroadcast = new NetworkChangeReceiver();
         initViews();
     }
 
@@ -66,14 +60,19 @@ public abstract class MainActivity<P extends Presenter> extends AppCompatActivit
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
-        registerReceiver(mNetworkBroadcast,new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onChangeNetworking(ConnectionMessage message){
-        if(message.isEnable())
+        if(message.isEnable()) {
+            Log.d("Connection", "Connecting");
             Toast.makeText(mContext, "Connected internet!!!", Toast.LENGTH_SHORT).show();
-        else Toast.makeText(mContext, "Disconnected internet!!!", Toast.LENGTH_SHORT).show();
+        }
+        else{
+            Toast.makeText(mContext, "Disconnected internet!!!", Toast.LENGTH_SHORT).show();
+            Log.d("Connection", "Disconnecting");
+        }
     }
 
 
@@ -81,7 +80,6 @@ public abstract class MainActivity<P extends Presenter> extends AppCompatActivit
     protected void onStop() {
         super.onStop();
         EventBus.getDefault().unregister(this);
-        unregisterReceiver(mNetworkBroadcast);
     }
 
     @Override

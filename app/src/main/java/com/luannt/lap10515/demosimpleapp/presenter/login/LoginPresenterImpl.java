@@ -52,8 +52,6 @@ public class LoginPresenterImpl extends MainPresenter<LoginView> implements Logi
 
                     }
                 });
-//                .doOnNext(id->mView.loginSuccessful(id))
-//                .doOnError(error-> mView.showToast(error.getMessage()));
     }
 
     @Override
@@ -73,7 +71,6 @@ public class LoginPresenterImpl extends MainPresenter<LoginView> implements Logi
     public void checkLoginStatus() {
         AccessToken token = AccessToken.getCurrentAccessToken();
         if(token != null){
-            mView.showToast(token.toString());
             mView.loginSuccessful(token.getUserId());
         }
     }

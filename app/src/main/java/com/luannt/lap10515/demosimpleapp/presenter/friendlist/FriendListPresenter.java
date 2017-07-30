@@ -9,5 +9,6 @@ import com.luannt.lap10515.demosimpleapp.view.friendlist.FriendListView;
 
 public interface FriendListPresenter extends Presenter<FriendListView> {
     void getFriendListFB(String userId, String token, String nextPage, int nextPageNumber);
+    void getFriendByName(String name, int page);
     void refreshList();
 }

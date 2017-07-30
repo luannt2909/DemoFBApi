@@ -17,6 +17,7 @@
                 <action android:name="android.net.conn.CONNECTION_CHANGE"></action>
             </intent-filter>
         </receiver>
+        <service android:name=".service.MainService"/>
         <activity android:name=".view.login.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

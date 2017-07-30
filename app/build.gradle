@@ -84,8 +84,10 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.7.0'
     //GreenDao
     compile 'org.greenrobot:greendao:3.2.2'
-    testCompile 'junit:junit:4.12'
+    //Fresco
+    compile 'com.facebook.fresco:fresco:1.4.0'
 
+    testCompile 'junit:junit:4.12'
 }
 repositories {
     jcenter()

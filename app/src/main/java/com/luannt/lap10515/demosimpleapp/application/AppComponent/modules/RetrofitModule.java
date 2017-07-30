@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -19,6 +20,7 @@ import dagger.Provides;
 import okhttp3.Cache;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -41,9 +43,9 @@ public class RetrofitModule {
     }
 
     @Provides
-    @Singleton
+    @Named("online")
     public Interceptor provideCacheControlInterceptor(final Application application){
-        Interceptor interceptor = new Interceptor() {
+        /*Interceptor interceptor = new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
                 Response originalResponse = chain.proceed(chain.request());
@@ -58,6 +60,42 @@ public class RetrofitModule {
                             .header("Cache-Control", "public, only-if-cached, max-stale=" + maxStale)
                             .build();
                 }
+            }
+        };*/
+        Interceptor interceptor = new Interceptor() {
+            @Override
+            public Response intercept(Chain chain) throws IOException {
+                okhttp3.Response originalResponse = chain.proceed(chain.request());
+                String cacheControl = originalResponse.header("Cache-Control");
+                if (cacheControl == null || cacheControl.contains("no-store") || cacheControl.contains("no-cache") ||
+                        cacheControl.contains("must-revalidate") || cacheControl.contains("max-age=0")) {
+                    return originalResponse.newBuilder()
+                            .removeHeader("Pragma")
+                            .header("Cache-Control", "public, max-age=" + 5000)
+                            .build();
+                } else {
+                    return originalResponse;
+                }
+            }
+        };
+
+        return interceptor;
+    }
+
+    @Provides
+    @Named("offline")
+    public Interceptor provideCacheOfflineInterceptor(final Application application){
+        Interceptor interceptor = new Interceptor() {
+            @Override
+            public Response intercept(Chain chain) throws IOException {
+                Request request = chain.request();
+                if (!ConnectionUtils.hasInternetConnection(application.getApplicationContext())) {
+                    request = request.newBuilder()
+                            .removeHeader("Pragma")
+                            .header("Cache-Control", "public, only-if-cached")
+                            .build();
+                }
+                return chain.proceed(request);
             }
         };
         return interceptor;
@@ -74,12 +112,15 @@ public class RetrofitModule {
 
     @Provides
     @Singleton
-    public OkHttpClient.Builder provideOkHttpClientBuilder(HttpLoggingInterceptor logging, Cache cache, Interceptor interceptor) {
+    public OkHttpClient.Builder provideOkHttpClientBuilder(HttpLoggingInterceptor logging, Cache cache,
+                                                           @Named("online") Interceptor interceptorOnline
+                                                            , @Named("offline") Interceptor interceptorOffline) {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.connectTimeout(AppConstants.CONNECT_TIME_OUT, TimeUnit.SECONDS)
                 .readTimeout(AppConstants.CONNECT_TIME_OUT, TimeUnit.SECONDS)
                 .cache(cache)
-                .addNetworkInterceptor(interceptor)
+                .addNetworkInterceptor(interceptorOnline)
+                .addInterceptor(interceptorOffline)
                 .addInterceptor(logging);
         return httpClient;
     }

@@ -5,6 +5,7 @@ import android.util.Log;
 import com.luannt.lap10515.demosimpleapp.data.db_entity.FriendEntity;
 import com.luannt.lap10515.demosimpleapp.database.dao.DaoSession;
 import com.luannt.lap10515.demosimpleapp.database.dao.FriendDao;
+import com.luannt.lap10515.demosimpleapp.utils.AppConstants;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -24,16 +25,6 @@ public class DBFriendRepository {
     }
 
     public void saveAll(List<FriendEntity> incomes) {
-        /*for(FriendEntity entity: incomes){
-            QueryBuilder<FriendEntity> origin = daoSession.getFriendDao().queryBuilder()
-                                                .where(FriendDao.Properties.FriendId.notEq(entity.getFriendFBId()));
-            this.daoSession.getFriendDao().save(origin.uniqueOrThrow());
-        }*/
-        //daoSession.getFriendDao().save();
-        //this.daoSession.getFriendDao().deleteAll();
-
-        //daoSession.getFriendDao().insert(new FriendEntity("luan","luan","luan"));
-        //this.daoSession.getFriendDao().insertOrReplaceInTx(incomes,false);
         this.daoSession.getFriendDao().insertOrReplaceInTx(incomes);
         long count = daoSession.getFriendDao().queryBuilder().distinct().orderAsc(FriendDao.Properties.Name).list().size();
         Log.d("COUNT FRIEND", count+"");
@@ -44,11 +35,9 @@ public class DBFriendRepository {
     }
 
     public Observable<List<FriendEntity>> getAll(final int nextPageNumber) {
-        //final RxQuery<FriendEntity> query = this.daoSession.getFriendDao().queryBuilder().rx();
         return fromCallable(new Callable<List<FriendEntity>>() {
             @Override
             public List<FriendEntity> call() throws Exception {
-
                 return daoSession.getFriendDao().queryBuilder()
                         .distinct()
                         .limit(20)
@@ -57,8 +46,20 @@ public class DBFriendRepository {
                         .list();
             }
         });
-        //return query.list();
-        //return this.daoSession.getFriendDao().loadAll();
+    }
+    public Observable<List<FriendEntity>> getFriendByName(final String name, final int page){
+        return fromCallable(new Callable<List<FriendEntity>>() {
+            @Override
+            public List<FriendEntity> call() throws Exception {
+                return daoSession.getFriendDao().queryBuilder()
+                        .distinct()
+                        .limit(AppConstants.MAX_SIZE)
+                        .offset(AppConstants.MAX_SIZE*page)
+                        .where(FriendDao.Properties.Name.like("%"+name+"%"))
+                        .orderAsc(FriendDao.Properties.Name)
+                        .list();
+            }
+        });
     }
 
 
